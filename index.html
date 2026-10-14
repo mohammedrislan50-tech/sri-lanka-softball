@@ -1,151 +1,205 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sri Lanka Softball</title>
 <style>
+:root{--bg:#09111f;--panel:#121f32;--line:#263851;--cyan:#00d8e8;--lime:#b9ff36;--white:#f5f8ff;--muted:#9db0c9}
 *{box-sizing:border-box}
-body{margin:0;background:#071225;color:white;font-family:Arial,sans-serif;padding:16px}
-header,.card{background:#112442;padding:18px;margin-bottom:15px;border-radius:14px;border:1px solid #29405e}
-h1{color:#baf53c;font-size:25px}
-button{background:#baf53c;color:#071225;border:0;padding:12px;border-radius:8px;font-weight:bold;margin:5px 3px;cursor:pointer}
-input,select{padding:12px;border-radius:8px;background:#071225;color:white;border:1px solid #456080;max-width:100%}
-.score{text-align:center;font-size:45px;font-weight:bold;color:#baf53c}
-.team{padding:12px;background:#071a32;margin:8px 0;border-radius:8px}
+body{margin:0;background:var(--bg);color:var(--white);font:15px Arial,sans-serif}
+header{padding:18px;background:#0d1929;border-bottom:2px solid var(--cyan);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:21px;margin:0;color:var(--cyan)}
+h2{font-size:20px}h3{font-size:16px}
+main{max-width:1100px;margin:auto;padding:16px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button,.btn{background:var(--cyan);color:#06101b;border:0;border-radius:7px;padding:11px 13px;font-weight:bold;cursor:pointer}
+button.secondary{background:#263b54;color:white}
+button.danger{background:#e34f5b;color:white}
+button:disabled{opacity:.4}
+input,select,textarea{width:100%;padding:11px;margin:5px 0 12px;background:#091525;color:white;border:1px solid #30445e;border-radius:6px}
+label{display:block;color:#c8d7e8;font-size:13px}
+.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.muted{color:var(--muted);font-size:13px}
+.big{font-size:36px;font-weight:900;color:var(--lime)}
+.hidden{display:none!important}
+.logo{width:58px;height:58px;object-fit:contain;border-radius:6px}
+.player{display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--line)}
+.player img{width:42px;height:42px;object-fit:cover;border-radius:50%}
+.scorebuttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.scorebuttons button{min-height:46px;font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{border-bottom:1px solid var(--line);padding:9px;text-align:left}
+th{color:var(--cyan)}
+#notice{position:sticky;top:0;background:#163c38;color:#caffdf;padding:10px;display:none;z-index:10}
+a{color:var(--cyan);overflow-wrap:anywhere}
+.overlay{font-family:Arial,sans-serif;background:#07122d;color:white;min-height:150px;display:flex;align-items:stretch;overflow:hidden}
+.ovteam{padding:15px;flex:1;display:flex;align-items:center;gap:12px;font-weight:bold}
+.ovcenter{background:linear-gradient(110deg,#00ddeb,#00f5c8,#baff20);color:#06122c;padding:14px 24px;text-align:center;min-width:190px;clip-path:polygon(8% 0,92% 0,100% 15%,100% 85%,92% 100%,8% 100%,0 85%,0 15%)}
+.ovscore{font-size:36px;font-weight:900}
+@media(max-width:550px){.ovteam{padding:7px;font-size:12px;gap:4px}.ovcenter{min-width:120px;padding:10px 12px}.ovscore{font-size:25px}.logo{width:42px;height:42px}}
 </style>
 </head>
 <body>
 <header>
-<h1>🏏 SRI LANKA SOFTBALL</h1>
-<p>Tournament Management & Live Score</p>
+  <div><h1>🏏 SRI LANKA SOFTBALL</h1><div class="muted">Tournament & Live Scoring</div></div>
+  <button class="secondary" onclick="home()">Home</button>
 </header>
-
-<section class="card">
-<h2>Create Tournament</h2>
-<input id="tournamentName" placeholder="Tournament name">
-<br><br>
-<select id="format">
-<option>League</option>
-<option>Knockout</option>
-</select>
-<button onclick="createTournament()">Create Tournament</button>
-<div id="tournaments"></div>
-</section>
-
-<section class="card">
-<h2>Teams</h2>
-<input id="teamName" placeholder="Team name">
-<button onclick="addTeam()">Add Team</button>
-<div id="teams"></div>
-</section>
-
-<section class="card">
-<h2>Live Score</h2>
-<div class="score" id="score">0 - 0</div>
-<p style="text-align:center" id="overs">Overs: 0.0</p>
-<div style="text-align:center">
-<button onclick="addRuns(0)">0</button>
-<button onclick="addRuns(1)">1</button>
-<button onclick="addRuns(2)">2</button>
-<button onclick="addRuns(3)">3</button>
-<button onclick="addRuns(4)">4</button>
-<button onclick="addRuns(6)">6</button>
-<button onclick="wicket()">WICKET</button>
-<button onclick="undo()">UNDO</button>
-</div>
-</section>
+<div id="notice"></div>
+<main id="app"></main>
 
 <script>
-let tournaments=JSON.parse(localStorage.getItem("sl_tournaments")||"[]");
-let selected=localStorage.getItem("sl_selected")||"";
-let runs=0,wickets=0,balls=0,history=[];
-
-function save(){
- localStorage.setItem("sl_tournaments",JSON.stringify(tournaments));
- localStorage.setItem("sl_selected",selected);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+let db;
+try{db=JSON.parse(localStorage.getItem("sls_db")||"null")}catch(e){}
+if(!db)db={tournaments:[]};
+let tid=null,mid=null,page="home",selectedGroup="A",selectedTeam=null;
+function save(){localStorage.setItem("sls_db",JSON.stringify(db))}
+function msg(s){$("notice").textContent=s;$("notice").style.display="block";setTimeout(()=>$("notice").style.display="none",2600)}
+function T(){return db.tournaments.find(x=>x.id===tid)}
+function M(){return T()?.matches.find(x=>x.id===mid)}
+function go(p){page=p;render()}
+function home(){tid=null;mid=null;page="home";render()}
+function fileImage(file){return new Promise(resolve=>{if(!file)return resolve("");let r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(file)})}
+function nav(){return `<nav>
+<button onclick="go('editmatch')">Edit Match</button>
+<button onclick="go('teams')">Teams</button>
+<button onclick="go('table')">Table</button>
+<button onclick="go('stats')">Stats</button>
+<button onclick="go('info')">Info</button>
+<button onclick="go('overlay')">Overlay</button>
+</nav>`}
+function homePage(){return `<h2>Tournaments</h2>
+<button onclick="go('create')">＋ Create Tournament</button>
+<div class="grid">${db.tournaments.map(t=>`<div class="card">
+${t.logo?`<img class="logo" src="${t.logo}">`:""}
+<h3>${esc(t.name)}</h3><p class="muted">${esc(t.type)} · ${(t.dates||[]).join(", ")}</p>
+<button onclick="tid='${t.id}';go('dashboard')">Open Tournament</button>
+<button class="secondary" onclick="deleteTournament('${t.id}')">Delete</button>
+</div>`).join("")||"<p class='muted'>No tournaments yet. Create your first tournament.</p>"}</div>`}
+function createPage(){return `<h2>Create Tournament</h2><div class="panel">
+<label>Tournament Name</label><input id="tn" placeholder="Enter tournament name">
+<label>Tournament Type</label><select id="tt" onchange="$('leagueFields').classList.toggle('hidden',this.value!=='League')"><option>Knockout</option><option>League</option></select>
+<div id="leagueFields" class="hidden">
+<label>Wickets per innings</label><input id="wickets" type="number" min="1" value="10">
+<label>Number of Groups</label><select id="groups">${[1,2,3,4,5,6,8].map(n=>`<option>${n}</option>`).join("")}</select>
+</div>
+<label>Tournament Dates (select multiple dates)</label><input id="dates" type="text" placeholder="2026-10-20, 2026-10-21">
+<div class="muted">Enter dates separated by commas, e.g. 2026-10-20, 2026-10-21</div>
+<label>Tournament Logo</label><input id="tlogo" type="file" accept="image/*">
+<button onclick="createTournament()">Create Tournament</button>
+<button class="secondary" onclick="home()">Cancel</button></div>`}
+async function createTournament(){
+let name=$("tn").value.trim();if(!name)return msg("Enter tournament name");
+let type=$("tt").value,logo=await fileImage($("tlogo").files[0]);
+let n=type==="League"?Number($("groups").value):0;
+let groups=Array.from({length:n},(_,i)=>String.fromCharCode(65+i));
+let t={id:uid(),name,type,logo,dates:$("dates").value.split(",").map(x=>x.trim()).filter(Boolean),wickets:type==="League"?Number($("wickets").value):10,groups,teams:[],matches:[],created:new Date().toISOString()};
+db.tournaments.unshift(t);save();tid=t.id;go("dashboard");msg("Tournament created successfully!");
 }
-
-function current(){
- return tournaments.find(t=>t.id===selected);
-}
-
-function createTournament(){
- let name=document.getElementById("tournamentName").value.trim();
- if(!name){alert("Enter tournament name");return;}
- tournaments.push({
-  id:Date.now().toString(),
-  name:name,
-  format:document.getElementById("format").value,
-  teams:[]
- });
- selected=tournaments[tournaments.length-1].id;
- save();
- render();
- document.getElementById("tournamentName").value="";
-}
-
-function addTeam(){
- let t=current();
- let name=document.getElementById("teamName").value.trim();
- if(!t){alert("Create a tournament first");return;}
- if(!name){alert("Enter team name");return;}
- t.teams.push(name);
- save();
- render();
- document.getElementById("teamName").value="";
-}
-
+function deleteTournament(id){if(confirm("Delete this tournament and its data?")){db.tournaments=db.tournaments.filter(t=>t.id!==id);save();render()}}
+function dashboard(){return `<h2>${esc(T().name)}</h2><p class="muted">${esc(T().type)} Tournament · ${T().teams.length} teams · ${T().matches.length} matches</p>${nav()}<div class="panel">Select a section above to manage this tournament.</div>`}
+function teamPage(){let t=T();return `<h2>Teams & Players</h2>${nav()}
+<div class="panel"><h3>Add New Team</h3>
+<label>Team Full Name</label><input id="teamName" placeholder="e.g. King Sports XI" oninput="$('teamShort').value=this.value.trim().split(/\\s+/).map(w=>w[0]||'').join('').toUpperCase()">
+<label>Short Name (auto-filled; editable)</label><input id="teamShort" placeholder="KSX">
+<label>Group</label><select id="teamGroup">${(t.groups.length?t.groups:["A"]).map(g=>`<option>${g}</option>`).join("")}</select>
+<label>Team Colour</label><input id="teamColor" type="color" value="#00d8e8">
+<label>Team Logo</label><input id="teamLogo" type="file" accept="image/*">
+<button onclick="addTeam()">Save Team</button>
+<button class="secondary" onclick="importTeams()">Import Teams (one team per line)</button>
+</div>
+${t.teams.map(tm=>`<div class="card"><div class="row">${tm.logo?`<img class="logo" src="${tm.logo}">`:""}<div><b>${esc(tm.name)}</b><div class="muted">${esc(tm.short)} · Group ${esc(tm.group)}</div></div><button onclick="editTeam('${tm.id}')">Edit</button><button class="danger" onclick="removeTeam('${tm.id}')">Delete</button><button onclick="selectedTeam='${tm.id}';go('players')">Players (${tm.players.length})</button></div></div>`).join("")}`}
+async function addTeam(){let name=$("teamName").value.trim();if(!name)return msg("Enter team name");let tm={id:uid(),name,short:$("teamShort").value.trim()||name.slice(0,3).toUpperCase(),group:$("teamGroup").value,color:$("teamColor").value,logo:await fileImage($("teamLogo").files[0]),players:[]};T().teams.push(tm);save();render();msg("Team saved")}
+function importTeams(){let s=prompt("Enter one team name per line");if(!s)return;s.split("\n").map(x=>x.trim()).filter(Boolean).forEach(name=>T().teams.push({id:uid(),name,short:name.split(/\s+/).map(w=>w[0]).join("").toUpperCase(),group:T().groups[0]||"A",color:"#00d8e8",logo:"",players:[]}));save();render()}
+function editTeam(id){let tm=T().teams.find(x=>x.id===id);let name=prompt("Team full name",tm.name);if(name===null)return;tm.name=name;tm.short=prompt("Short name",tm.short)||tm.short;tm.group=prompt("Group",tm.group)||tm.group;save();render()}
+function removeTeam(id){if(confirm("Delete team?")){T().teams=T().teams.filter(x=>x.id!==id);save();render()}}
+function playersPage(){let tm=T().teams.find(x=>x.id===selectedTeam);if(!tm){go("teams");return ""}return `<h2>${esc(tm.name)} — Players</h2>${nav()}
+<div class="panel"><label>Player Name</label><input id="playerName" placeholder="Player full name"><label>Player Photo</label><input id="playerPhoto" type="file" accept="image/*"><button onclick="addPlayer()">Save Player</button><button class="secondary" onclick="go('teams')">Back to Teams</button></div>
+${tm.players.map(p=>`<div class="player">${p.photo?`<img src="${p.photo}">`:""}<div style="flex:2">${esc(p.name)}</div><button onclick="editPlayer('${p.id}')">Edit</button><button class="danger" onclick="removePlayer('${p.id}')">Delete</button></div>`).join("")}`}
+async function addPlayer(){let tm=T().teams.find(x=>x.id===selectedTeam),name=$("playerName").value.trim();if(!name)return msg("Enter player name");tm.players.push({id:uid(),name,photo:await fileImage($("playerPhoto").files[0])});save();render();msg("Player saved")}
+function editPlayer(id){let tm=T().teams.find(x=>x.id===selectedTeam),p=tm.players.find(x=>x.id===id),n=prompt("Player name",p.name);if(n!==null){p.name=n;save();render()}}
+function removePlayer(id){let tm=T().teams.find(x=>x.id===selectedTeam);tm.players=tm.players.filter(p=>p.id!==id);save();render()}
+function editMatchPage(){return `<h2>Matches</h2>${nav()}
+<div class="row"><button onclick="go('newmatch')">＋ New Match</button><button class="secondary" onclick="go('schedule')">Schedule Match</button></div>
+${T().matches.map(m=>`<div class="card"><b>Match ${m.number}: ${esc(team(m.a)?.name||"?")} vs ${esc(team(m.b)?.name||"?")}</b><p class="muted">${esc(m.type)} · ${m.overs} overs · ${m.status}</p><button onclick="mid='${m.id}';go(m.status==='Scheduled'?'toss':'score')">${m.status==='Scheduled'?'Open / Toss':'Open Score'}</button><button class="secondary" onclick="mid='${m.id}';go('score')">Live Score</button></div>`).join("")||"<p>No matches created.</p>"}`}
+function team(id){return T().teams.find(x=>x.id===id)}
+function matchForm(schedule=false){return `<h2>${schedule?"Schedule Match":"New Match Setup"}</h2>${nav()}
+<div class="panel"><div class="row"><div><label>Overs</label><input id="overs" type="number" value="20" min="1"></div><div><label>Balls per over</label><input id="bpo" type="number" value="6" min="1" max="10"></div></div>
+<label>Match Type</label><select id="mtype">${["League Match","Knockout Match","1st Round","Quarter Final","Semi Final 1","Semi Final 2","Eliminator","1st Qualifier","2nd Qualifier","Final","Friendly"].map(x=>`<option>${x}</option>`).join("")}</select>
+<label>Team A</label><select id="teamA">${T().teams.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</select>
+<label>Team B</label><select id="teamB">${T().teams.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</select>
+<label>Playing XI selection (optional; select players in next step)</label>
+<button onclick="createMatch('${schedule?"Scheduled":"New"}')">Next</button></div>`}
+function createMatch(status){if(T().teams.length<2)return msg("Add at least two teams first");let a=$("teamA").value,b=$("teamB").value;if(a===b)return msg("Select two different teams");let m={id:uid(),number:T().matches.length+1,a,b,overs:Number($("overs").value),bpo:Number($("bpo").value),type:$("mtype").value,status:"Scheduled",innings:1,runs:0,wickets:0,balls:0,batting:a,bowling:b,striker:null,non:null,bowler:null,batters:{},bowlers:{},events:[],toss:"",target:null};T().matches.push(m);mid=m.id;save();go("toss");msg("Match setup created")}
+function schedulePage(){return matchForm(true)}
+function tossPage(){let m=M();return `<h2>Toss — Match ${m.number}</h2>${nav()}<div class="panel"><h3>${esc(team(m.a).name)} vs ${esc(team(m.b).name)}</h3>
+<label>Toss winner</label><select id="tossTeam"><option value="${m.a}">${esc(team(m.a).name)}</option><option value="${m.b}">${esc(team(m.b).name)}</option></select>
+<label>Decision</label><select id="decision"><option value="bat">Elected to bat</option><option value="bowl">Elected to bowl</option></select>
+<label>Choose striker</label><select id="startStriker">${playerOptions(m.a)}</select>
+<label>Choose non-striker</label><select id="startNon">${playerOptions(m.a)}</select>
+<label>Choose opening bowler</label><select id="startBowler">${playerOptions(m.b)}</select>
+<button onclick="startMatch()">Start Match</button></div>`}
+function playerOptions(teamId){let ps=team(teamId)?.players||[];return ps.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")||`<option value="">No players — add players in Teams</option>`}
+function startMatch(){let m=M(),winner=$("tossTeam").value,decision=$("decision").value;m.toss=team(winner).name+" elected to "+decision;m.batting=(winner===m.a?(decision==="bat"?m.a:m.b):(decision==="bat"?m.b:m.a));m.bowling=m.batting===m.a?m.b:m.a;m.striker=$("startStriker").value||null;m.non=$("startNon").value||null;m.bowler=$("startBowler").value||null;m.status="Live";save();go("score");msg("Match started")}
+function currentBatters(m){return [m.striker,m.non].map(id=>findPlayer(id)).filter(Boolean)}
+function findPlayer(id){if(!id)return null;for(let tm of T().teams){let p=tm.players.find(x=>x.id===id);if(p)return p}return null}
+function batStat(m,id){if(!id)return {r:0,b:0,f:0,s:0};return m.batters[id]||(m.batters[id]={r:0,b:0,f:0,s:0})}
+function overText(m){return Math.floor(m.balls/m.bpo)+"."+(m.balls%m.bpo)}
+function scorePage(){let m=M(),bat=team(m.batting),bowl=team(m.bowling),s=findPlayer(m.striker),ns=findPlayer(m.non),bo=findPlayer(m.bowler),bs=batStat(m,m.striker),nbs=batStat(m,m.non);return `<h2>LIVE SCORE — Match ${m.number}</h2>${nav()}
+<div class="panel"><div class="row"><div><b>${esc(bat?.name||"Batting")}</b><div class="big">${m.runs}/${m.wickets}</div><div>${overText(m)} overs</div></div><div><b>${esc(bowl?.name||"Bowling")}</b><p>${m.overs} overs · ${esc(m.type)}</p><p class="muted">${esc(m.toss)}</p></div></div>
+${m.innings===2&&m.target!==null?`<p>Target: ${m.target} · Need ${Math.max(0,m.target-m.runs)} runs · Remaining balls ${Math.max(0,m.overs*m.bpo-m.balls)}</p>`:""}
+<div class="grid"><div class="card"><b>Striker *</b><p>${esc(s?.name||"Not selected")}</p><div>${bs.r} runs · ${bs.b} balls · 4s ${bs.f} · 6s ${bs.s}</div><label>Change striker</label><select id="strikerSelect">${playerOptions(m.batting)}</select><button class="secondary" onclick="changePlayer('striker')">Update</button></div>
+<div class="card"><b>Non-striker</b><p>${esc(ns?.name||"Not selected")}</p><div>${nbs.r} runs · ${nbs.b} balls · 4s ${nbs.f} · 6s ${nbs.s}</div><label>Change non-striker</label><select id="nonSelect">${playerOptions(m.batting)}</select><button class="secondary" onclick="changePlayer('non')">Update</button></div>
+<div class="card"><b>Bowler</b><p>${esc(bo?.name||"Not selected")}</p><label>Change bowler</label><select id="bowlerSelect">${playerOptions(m.bowling)}</select><button class="secondary" onclick="changePlayer('bowler')">Update</button></div></div>
+<h3>This Over: ${(m.thisOver||[]).join(" · ")||"No balls yet"}</h3>
+<div class="scorebuttons">${[0,1,2,3,4,5,6,7].map(n=>`<button onclick="scoreRun(${n})">${n}</button>`).join("")}
+<button onclick="extra('Wide')">Wide +1</button><button onclick="extra('No-ball')">No-ball +1</button><button onclick="extra('Bye')">Bye</button><button onclick="extra('Leg-bye')">Leg-bye</button><button onclick="extra('Penalty')">Penalty +5</button><button class="danger" onclick="wicket()">OUT / WICKET</button></div>
+<div class="row" style="margin-top:12px"><button class="secondary" onclick="undo()">↶ Undo</button><button class="secondary" onclick="changeEnds()">Change Ends</button><button class="secondary" onclick="endInnings()">End Innings</button><button class="danger" onclick="finishMatch()">End Match</button></div></div>`}
+function changePlayer(which){let m=M();m[which]=which==="striker"?$("strikerSelect").value:which==="non"?$("nonSelect").value:$("bowlerSelect").value;save();render()}
+function swap(){let m=M();[m.striker,m.non]=[m.non,m.striker]}
+function changeEnds(){swap();save();render()}
+function snapshot(m){let x=JSON.parse(JSON.stringify(m));m.events.push(x)}
+function scoreRun(n){let m=M();if(!m.striker||!m.bowler)return msg("Select striker and bowler first");snapshot(m);let b=batStat(m,m.striker);m.runs+=n;b.r+=n;b.b++;if(n===4)b.f++;if(n===6)b.s++;m.balls++;m.thisOver=m.thisOver||[];m.thisOver.push(String(n));if(n%2)swap();afterBall(m);save();render()}
+function extra(type){let m=M();if(!m.bowler)return msg("Select bowler first");snapshot(m);let add=type==="Penalty"?5:1;m.runs+=add;
+if(type==="Wide"||type==="No-ball"){m.thisOver=m.thisOver||[];m.thisOver.push(type==="Wide"?"Wd":"Nb")}else{m.balls++;if(m.striker)batStat(m,m.striker).b++;m.thisOver=m.thisOver||[];m.thisOver.push(type==="Bye"?"B":type==="Leg-bye"?"Lb":"P")}
+afterBall(m);save();render()}
+function afterBall(m){if(m.balls%m.bpo===0){m.thisOver=[];swap();msg("Over completed — check/select next bowler")}if(m.balls>=m.overs*m.bpo){m.status="Innings complete";msg("Innings completed")}}
+function wicket(){let m=M();if(!m.striker)return msg("Select striker first");snapshot(m);m.wickets++;m.balls++;m.thisOver=m.thisOver||[];m.thisOver.push("W");m.batters[m.striker]=m.batters[m.striker]||{r:0,b:0,f:0,s:0};m.striker=null;afterBall(m);save();render();msg("Wicket! Select new striker")}
+function undo(){let m=M();if(!m.events.length)return msg("Nothing to undo");let prev=m.events.pop();Object.assign(m,prev);save();render();msg("Last action undone")}
+function endInnings(){let m=M();if(m.innings===1){m.target=m.runs+1;m.innings=2;[m.batting,m.bowling]=[m.bowling,m.batting];m.runs=0;m.wickets=0;m.balls=0;m.striker=null;m.non=null;m.bowler=null;m.thisOver=[];m.status="Live";save();go("toss");msg("Second innings setup")}else{m.status="Innings complete";save();render()}}
+function finishMatch(){let m=M();m.status="Complete";save();render();msg("Match completed")}
+function tablePage(){let t=T();if(t.type!=="League")return `${nav()}<h2>Points Table</h2><div class="panel">Knockout tournament-க்கு points table தேவையில்லை.</div>`;return `${nav()}<h2>League Points Table</h2><div class="row">${t.groups.map(g=>`<button class="secondary" onclick="selectedGroup='${g}';render()">Group ${g} — Show</button>`).join("")}</div><h3>Group ${selectedGroup}</h3><table><thead><tr><th>Team</th><th>P</th><th>W</th><th>L</th><th>Pts</th></tr></thead><tbody>${t.teams.filter(tm=>tm.group===selectedGroup).map(tm=>{let ms=t.matches.filter(m=>m.status==="Complete"&&(m.a===tm.id||m.b===tm.id));let w=ms.filter(m=>m.winner===tm.id).length;return `<tr><td>${esc(tm.name)}</td><td>${ms.length}</td><td>${w}</td><td>${ms.length-w}</td><td>${w*2}</td></tr>`}).join("")}</tbody></table>`}
+function statsPage(){let t=T(),rows=[];t.matches.forEach(m=>{Object.entries(m.batters||{}).forEach(([id,s])=>rows.push({name:findPlayer(id)?.name||"Player",...s,team:team(m.batting)?.name||""}))});return `${nav()}<h2>Stats</h2><h3>Batting</h3><table><tr><th>Player</th><th>Team</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th></tr>${rows.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.team)}</td><td>${p.r}</td><td>${p.b}</td><td>${p.f}</td><td>${p.s}</td></tr>`).join("")}</table><p class="muted">Bowling and fielding statistics will need additional ball-by-ball data and dismissal details.</p>`}
+function infoPage(){let t=T();return `${nav()}<h2>Tournament Info</h2><div class="panel"><label>Name</label><input id="infoName" value="${esc(t.name)}"><label>Type</label><select id="infoType"><option ${t.type==="League"?"selected":""}>League</option><option ${t.type==="Knockout"?"selected":""}>Knockout</option></select><label>Dates (comma separated)</label><input id="infoDates" value="${esc((t.dates||[]).join(", "))}"><button onclick="saveInfo()">Update Info</button></div>`}
+function saveInfo(){let t=T();t.name=$("infoName").value.trim()||t.name;t.type=$("infoType").value;t.dates=$("infoDates").value.split(",").map(x=>x.trim()).filter(Boolean);save();render();msg("Tournament updated")}
+function overlayPage(){let t=T(),url=location.href.split("?")[0]+"?overlay="+t.id;return `${nav()}<h2>OBS Overlay</h2><div class="panel"><p>இந்த tournament-க்கான overlay preview:</p>${overlayHTML(t)}<label>Overlay URL</label><input id="overlayUrl" readonly value="${esc(url)}"><button onclick="navigator.clipboard.writeText($('overlayUrl').value).then(()=>msg('Link copied')).catch(()=>prompt('Copy this link',$('overlayUrl').value))">Copy OBS Link</button><p class="muted">OBS → Sources → + → Browser → URL paste செய்யவும். இந்த basic preview browser-local data-ஐ பயன்படுத்துகிறது; வேறு சாதனங்களில் live sync ஆக backend தேவை.</p></div>`}
+function overlayHTML(t){let m=t.matches.find(x=>x.status==="Live")||t.matches[0];if(!m)return `<div class="overlay"><div class="ovteam">${esc(t.name)}</div><div class="ovcenter">LIVE<br>No match</div></div>`;return `<div class="overlay"><div class="ovteam">${esc(team(m.batting)?.name||"TEAM A")}<br>${esc(findPlayer(m.striker)?.name||"Batsman")}<br>${esc(findPlayer(m.non)?.name||"Non-striker")}</div><div class="ovcenter"><div>${esc(m.type)}</div><div class="ovscore">${m.runs}-${m.wickets}</div><div>${overText(m)} OVERS</div><div>${esc(m.toss)}</div></div><div class="ovteam">${esc(team(m.bowling)?.name||"TEAM B")}<br>${esc(findPlayer(m.bowler)?.name||"Bowler")}<br>${m.target!==null?"Target "+m.target:""}</div></div>`}
 function render(){
- document.getElementById("tournaments").innerHTML=
- tournaments.map(t=>`<div class="team">
- <b>${escapeHTML(t.name)}</b><br>
- ${escapeHTML(t.format)} · ${t.teams.length} teams<br>
- <button onclick="selectTournament('${t.id}')">Open</button>
- </div>`).join("");
- let t=current();
- document.getElementById("teams").innerHTML=t?
- t.teams.map(x=>`<div class="team">${escapeHTML(x)}</div>`).join(""):
- "Create and open a tournament first.";
+let t=T(),html="";
+if(location.search.startsWith("?overlay=")){let id=new URLSearchParams(location.search).get("overlay");tid=id;let tt=T();$("app").innerHTML=tt?overlayHTML(tt):"Tournament not found";return}
+if(page==="home")html=homePage();
+else if(page==="create")html=createPage();
+else if(!t){page="home";html=homePage()}
+else if(page==="dashboard")html=dashboard();
+else if(page==="teams")html=teamPage();
+else if(page==="players")html=playersPage();
+else if(page==="editmatch")html=editMatchPage();
+else if(page==="newmatch")html=matchForm(false);
+else if(page==="schedule")html=schedulePage();
+else if(page==="toss")html=tossPage();
+else if(page==="score")html=scorePage();
+else if(page==="table")html=tablePage();
+else if(page==="stats")html=statsPage();
+else if(page==="info")html=infoPage();
+else if(page==="overlay")html=overlayPage();
+$("app").innerHTML=html;
 }
-
-function selectTournament(id){
- selected=id;save();render();
-}
-
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",
-  '"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-function updateScore(){
- document.getElementById("score").textContent=runs+" - "+wickets;
- document.getElementById("overs").textContent=
- "Overs: "+Math.floor(balls/6)+"."+(balls%6);
-}
-
-function addRuns(n){
- history.push({runs:runs,wickets:wickets,balls:balls});
- runs+=n;balls++;updateScore();
-}
-
-function wicket(){
- history.push({runs:runs,wickets:wickets,balls:balls});
- wickets++;balls++;updateScore();
-}
-
-function undo(){
- if(!history.length)return;
- let previous=history.pop();
- runs=previous.runs;
- wickets=previous.wickets;
- balls=previous.balls;
- updateScore();
-}
-
 render();
 </script>
 </body>
